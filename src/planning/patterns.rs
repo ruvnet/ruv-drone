@@ -128,7 +128,7 @@ fn serpentine_in_region(
     let y = y.min(y1);
 
     // Serpentine: even rows L→R, odd rows R→L.
-    let along = if row % 2 == 0 { col } else { cols - 1 - col };
+    let along = if row.is_multiple_of(2) { col } else { cols - 1 - col };
     let x = x0 + (along as f64 + 0.5) * scan_width_m;
     let x = x.min(x1);
 
