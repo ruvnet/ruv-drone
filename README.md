@@ -1,12 +1,17 @@
 # ruv-drone (wifi-densepose-swarm)
 
-> ⚠️ **Export-controlled capability.** Swarming coordination features (formation
-> control, Raft consensus, task allocation) are gated behind the `itar-unrestricted`
-> feature flag per **USML Category VIII(h)(12)**. Default builds compile only safe
-> stubs. **Do not enable `itar-unrestricted` for international distribution without
-> export counsel review.** See [`NOTICE`](./NOTICE).
+> **Scope: industrial / civilian cooperative-UAV operation.** This crate implements
+> cooperative-fleet coordination — **formation keeping, collision avoidance, distributed
+> consensus, and cooperative task allocation** — for civilian missions (search-and-rescue,
+> infrastructure inspection, agriculture, mapping). It does **not** implement adaptive
+> behavior in response to threats or mission objectives, target acquisition/engagement,
+> or weapons integration. Per the U.S. State Department's clarification distinguishing
+> cooperative/formation operation from military "swarming", the maintainer's assessment
+> is that **USML Category VIII(h)(12) does not apply**. This is not legal advice; final
+> export classification is the maintainer's / export counsel's responsibility.
+> See [`NOTICE`](./NOTICE).
 
-Drone swarm control system for the RuView wifi-densepose workspace. Implements ADR-148.
+Cooperative UAV-fleet control for the RuView wifi-densepose workspace. Implements ADR-148.
 
 ## Overview
 
@@ -28,19 +33,20 @@ integration with the existing WiFi CSI sensing pipeline (`wifi-densepose-signal`
 - **Fail-Safe State Machine** — 10-state onboard safety system, GCS-independent
 - **Demo & Training Modes** — synthetic CSI generation, Gazebo/PX4 SITL interface, TOML mission configs
 
-## ITAR Notice
+## Export Scope
 
-> ⚠️ **Export-controlled capability.** Swarming coordination features (formation control,
-> Raft consensus, task allocation) are gated behind the `itar-unrestricted` feature flag
-> per **USML Category VIII(h)(12)**. Default builds compile only safe stubs.
-> Do not enable `itar-unrestricted` for international distribution without export counsel review.
+> This crate provides **industrial cooperative-UAV** capabilities (formation keeping,
+> collision avoidance, distributed consensus, cooperative task allocation) for civilian
+> missions. It does **not** provide adaptive threat/mission-response swarming, target
+> acquisition/engagement, or weapons integration. The maintainer's assessment is that
+> **USML Category VIII(h)(12) does not apply** (see [`NOTICE`](./NOTICE)). Not legal
+> advice — confirm classification with export counsel.
 
 ## Crate Features
 
 | Feature | Description |
 |---------|-------------|
-| `default` | Core types, sensing, failsafe, config, MARL — no ITAR-gated code |
-| `itar-unrestricted` | Enables formation control, Raft consensus, task allocation |
+| `default` | Core types, topology/consensus, formation, allocation, planning, sensing, failsafe, config, MARL |
 | `mavlink` | MAVLink v2 protocol support |
 | `onnx` | ONNX Runtime backend for MARL actor inference (INT8) |
 | `simulation` | Simulation-mode stubs |
@@ -77,10 +83,10 @@ let estimated_secs = scenario.estimate_coverage_time_secs();
 ```
 src/
 ├── types.rs            — NodeId, DroneState, SwarmTask, SwarmError, FailSafeState
-├── topology/           — Raft consensus¹, Gossip dissemination, MeshTopology
-├── formation/          — VirtualStructure¹, LeaderFollower¹, Reynolds flocking¹
+├── topology/           — Raft consensus, Gossip dissemination, MeshTopology
+├── formation/          — VirtualStructure, LeaderFollower, Reynolds flocking
 ├── planning/           — RRT-APF planner, 3-phase coverage, Bayesian grid, pheromone
-├── allocation/         — Auction-based task allocation¹, FNN bid scorer¹
+├── allocation/         — Auction-based task allocation, FNN bid scorer
 ├── sensing/            — CSI payload pipeline, multi-drone fusion, OccWorld bridge
 ├── marl/               — MAPPO actor, LocalObservation, reward shaping, TrainingConfig
 ├── security/           — MAVLink signing, UWB anti-spoofing, geofencing, Remote ID
@@ -89,8 +95,6 @@ src/
 ├── demo/               — Synthetic CSI, DemoScenario runners
 ├── integration/        — FlightController trait (PX4/ArduPilot/Sim)
 └── bench_support.rs    — Criterion fixture generators
-
-¹ Requires `itar-unrestricted` feature.
 ```
 
 ## Related ADRs

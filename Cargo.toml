@@ -2,24 +2,22 @@
 name = "ruview-swarm"
 version = "0.1.0"
 edition = "2021"
-description = "RuView drone swarm control system — hierarchical-mesh topology, Raft consensus, MARL, CSI sensing integration (ADR-148)"
+description = "Industrial cooperative-UAV coordination — formation keeping, collision avoidance, Raft consensus, cooperative task allocation, MAPPO navigation (ADR-148)"
 license = "Apache-2.0"
 # Publishing disabled until: (1) PR #862 merges, (2) internal path-deps are
-# published in dependency order, (3) export-control sign-off on the ITAR-gated
-# coordination features (USML Category VIII(h)(12)). Flip to true deliberately.
+# published in dependency order. Flip to true deliberately.
+# Scope is industrial/cooperative (formation keeping, collision avoidance,
+# cooperative operation) — NOT adaptive threat/mission-response swarming. See NOTICE.
 publish = false
 
 [features]
 default = []
-# ITAR/USML Category VIII(h)(12): swarming coordination features.
-# Must not be enabled in international distributions without export counsel review.
-itar-unrestricted = []
 mavlink = ["dep:mavlink"]
 ros2-dds = []
 onnx = ["dep:ort"]
 simulation = []
 demo = ["simulation"]
-full = ["mavlink", "onnx", "demo", "itar-unrestricted"]
+full = ["mavlink", "onnx", "demo"]
 ruflo = ["dep:reqwest", "dep:serde_json"]
 # Heavy GPU-capable MARL training (real Candle autodiff PPO). Off by default so
 # the default build stays light and the existing test suite keeps passing.

@@ -1,12 +1,30 @@
-EXPORT CONTROL NOTICE
+SCOPE & EXPORT NOTICE
 =====================
 
-This repository contains technical data subject to U.S. export control laws.
+Scope: industrial / civilian cooperative-UAV operation.
 
-⚠️ Export-controlled capability. Swarming coordination features (formation control,
-Raft consensus, task allocation) are gated behind the `itar-unrestricted` feature flag
-per USML Category VIII(h)(12). Default builds compile only safe stubs. Do not enable
-`itar-unrestricted` for international distribution without export counsel review.
+This project implements cooperative-fleet coordination for civilian missions
+(search-and-rescue, infrastructure inspection, agriculture, mapping, telecom relay):
 
-The maintainer is responsible for ensuring any distribution complies with applicable
-export-control regulations (ITAR / EAR).
+  - formation keeping (virtual structure, leader-follower, Reynolds flocking)
+  - collision avoidance (RRT-APF reactive planning)
+  - distributed consensus (Raft) and gossip/mesh state sharing
+  - cooperative task allocation (auction / FNN bid scoring)
+  - cooperative-navigation reinforcement learning (MAPPO)
+
+It does NOT implement, and is not intended for:
+
+  - adaptive behavior in response to threats or mission objectives
+  - target acquisition, tracking-to-engage, or fire control
+  - weapons integration or munitions deployment
+  - autonomous engagement / countermeasure behavior
+
+Per the U.S. State Department's clarification distinguishing cooperative and
+formation operation from military "swarming" (adaptive behavior in response to
+threats or mission objectives), the maintainer's assessment is that these
+capabilities fall OUTSIDE USML Category VIII(h)(12).
+
+This NOTICE is not legal advice and is not an export-control determination.
+Final classification (USML / ITAR / EAR) is the responsibility of the maintainer
+and qualified export counsel. Any downstream modification that adds adaptive
+threat/mission-response behavior may change this classification.
