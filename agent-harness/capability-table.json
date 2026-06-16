@@ -1,0 +1,10 @@
+[
+  {
+    "rights": [
+      "EXECUTE"
+    ],
+    "resource": "mcp__ruvdrone__*",
+    "proof_tier": "P2",
+    "expires_at": 0
+  }
+]

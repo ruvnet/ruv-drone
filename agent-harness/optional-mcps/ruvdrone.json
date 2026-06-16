@@ -1,0 +1,11 @@
+{
+  "ruvdrone": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "ruvdrone@latest",
+      "mcp",
+      "start"
+    ]
+  }
+}

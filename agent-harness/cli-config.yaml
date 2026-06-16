@@ -1,0 +1,6 @@
+# Hermes Agent config for ruvdrone — subset of cli-config.yaml.example.
+model:
+  provider: "auto"
+agent:
+  personalities:
+    ruvdrone: "AI agent harness for ruv-drone — cooperative civilian UAV fleet coordination in Rust. All 9 hosts."

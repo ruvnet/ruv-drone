@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "trusted_extensions": [
+    {
+      "name": "ruvdrone",
+      "source": "npm:ruvdrone",
+      "allow": [
+        "mcp__ruvdrone__*"
+      ],
+      "deny": [
+        "Read(./.env)",
+        "Read(./.env.*)",
+        "Bash(rm:*)",
+        "Bash(git push:*)",
+        "Write(*)",
+        "Edit(*)"
+      ]
+    }
+  ]
+}

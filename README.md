@@ -144,6 +144,28 @@ single-drone Wi2SAR baseline:
 | MARL inference | N/A | ≤ 5 ms (INT8, release) |
 | Raft election | N/A | ≤ 300 ms |
 
+## Agent harness
+
+`ruv-drone` ships a repo-aware **AI agent harness** in [`agent-harness/`](./agent-harness),
+minted with [MetaHarness](https://github.com/ruvnet/agent-harness-generator) and wired for
+**all 9 supported hosts** (Claude Code, Codex, OpenCode, Copilot, GitHub Actions, Hermes,
+OpenClaw, pi.dev, RVM). Each host's config is verified against the real host runtime, and
+the harness encodes this repo's **civilian-only scope** (see [`NOTICE`](./NOTICE)) and Rust
+workflow (`cargo build/test/clippy/bench`) so agents stay on-task.
+
+```bash
+# use the harness with your host (drop into any of the 9 — see agent-harness/README.md)
+cd agent-harness && npm install && npm test && node bin/cli.js doctor
+
+# or mint a fresh copy yourself (one command, all 9 hosts):
+npx metaharness@latest ruvdrone \
+  --host claude-code --host codex,copilot,github-actions,hermes,openclaw,opencode,pi-dev,rvm \
+  --template vertical:coding
+```
+
+Published to npm as [`ruvdrone`](https://www.npmjs.com/package/ruvdrone). Per-host install
+notes live in [`agent-harness/docs/hosts/`](./agent-harness/docs/hosts).
+
 ## License
 
 Apache-2.0. See [`NOTICE`](./NOTICE) for scope and export details.

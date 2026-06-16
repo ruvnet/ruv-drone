@@ -1,0 +1,24 @@
+{
+  "servers": {
+    "ruvdrone": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "ruvdrone@latest",
+        "mcp",
+        "start"
+      ]
+    }
+  },
+  "mcpServers": {
+    "ruvdrone": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "ruvdrone@latest",
+        "mcp",
+        "start"
+      ]
+    }
+  }
+}
