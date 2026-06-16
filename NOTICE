@@ -1,0 +1,12 @@
+EXPORT CONTROL NOTICE
+=====================
+
+This repository contains technical data subject to U.S. export control laws.
+
+⚠️ Export-controlled capability. Swarming coordination features (formation control,
+Raft consensus, task allocation) are gated behind the `itar-unrestricted` feature flag
+per USML Category VIII(h)(12). Default builds compile only safe stubs. Do not enable
+`itar-unrestricted` for international distribution without export counsel review.
+
+The maintainer is responsible for ensuring any distribution complies with applicable
+export-control regulations (ITAR / EAR).

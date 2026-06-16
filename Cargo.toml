@@ -27,7 +27,7 @@ train = ["dep:candle-core", "dep:candle-nn"]
 cuda = ["candle-core/cuda", "candle-nn/cuda"]
 
 [dependencies]
-wifi-densepose-core = { path = "../wifi-densepose-core" }
+# (no internal path deps — standalone repo; the former wifi-densepose-core dep was unused)
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

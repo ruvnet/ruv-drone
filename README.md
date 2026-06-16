@@ -1,4 +1,10 @@
-# wifi-densepose-swarm
+# ruv-drone (wifi-densepose-swarm)
+
+> ⚠️ **Export-controlled capability.** Swarming coordination features (formation
+> control, Raft consensus, task allocation) are gated behind the `itar-unrestricted`
+> feature flag per **USML Category VIII(h)(12)**. Default builds compile only safe
+> stubs. **Do not enable `itar-unrestricted` for international distribution without
+> export counsel review.** See [`NOTICE`](./NOTICE).
 
 Drone swarm control system for the RuView wifi-densepose workspace. Implements ADR-148.
 
