@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/schema/opencode.json",
+  "mcp": {
+    "ruvdrone": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "ruvdrone@latest",
+        "mcp",
+        "start"
+      ],
+      "enabled": true
+    }
+  },
+  "permission": {
+    "edit": "ask",
+    "bash": {
+      "*": "ask",
+      "rm *": "deny",
+      "git push *": "deny"
+    },
+    "webfetch": "ask"
+  }
+}

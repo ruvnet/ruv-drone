@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "generator": "0.1.0",
+  "template": "vertical:coding",
+  "template_version": "0.0.0",
+  "vars": {
+    "name": "ruvdrone",
+    "description": "AI agent harness for ruv-drone — cooperative civilian UAV fleet coordination in Rust. All 9 hosts.",
+    "host": "claude-code"
+  },
+  "hosts": [
+    "claude-code"
+  ],
+  "files": {
+    ".claude/commands/doctor.md": "2f1475fa0ed34729cb2ed9d6cecf29e99781da0a56afef133361e3ff0a17bb52",
+    ".claude/commands/review-diff.md": "2ab52f01487bfe67335f4de5193d7a6fb0f72f646411114613d8fa5da071ef2b",
+    ".claude/settings.json": "cb5a4fbf141b6954e795c5cc0e97c70ab21c8f82ca8796c9639d17ad0c5a55ff",
+    ".claude/skills/plan-change/SKILL.md": "84e1c44ca264b999ebf80cd8fa0e5ebf554275bbd8023b1530ad053a44482e30",
+    ".claude-plugin/plugin.json": "730fb06890090f6ae2d1694fc87e0c1bf27c42f7e53452cfbe97860673ccfe86",
+    "CLAUDE.md": "446b7b64c5a297c0a825ca4da7030a8caf10ab9553610374e32e133e69e0b105",
+    "README.md": "069d7394c2cb18cf0e22677e027b684cfb4e703713bd9b161dccb5e2fd56a5dc",
+    "__tests__/smoke.test.ts": "00af9467da32ceddc9a0b024a5ece5649d23354a812079ce13572c7f787d2625",
+    "bin/cli.js": "62061fee99f76ed2cb26e6396879c446177f3b566bcb0571a221a6401e416242",
+    "package.json": "50e727a828199eb6b7e1365985e74c254fdba2481003fdd09400c23f662bbb47",
+    "src/agents/architect.ts": "6adb78346f90594a836377b1b38f3ac2f133e87e09b15f2e8c041e3e1e547b59",
+    "src/agents/implementer.ts": "7c3cd36a940142762ede3de6f00428deb9fe5ac4436b55655a58d9d1c6db8b42",
+    "src/agents/reviewer.ts": "86844d249c0166a408b26ba9287601360b2140580e963d1965a3da960446ba5b",
+    "src/agents/test-writer.ts": "a830f842a98dffc8495b47b2a7772c19bb8b25d7a155dcf58256b6e897b43c57",
+    "src/init.ts": "b8d06e4974faee1ffdc4ae0cf5ae5622194440100b17a6df945a77d8fbebd967",
+    "tsconfig.json": "8b4e730a1aa39162ac574455d7a98e1881f5313ca80ffe503b9652dcf0c76b9d"
+  },
+  "generated_at": "2026-06-16T19:43:11.720Z",
+  "meta": {
+    "surface": "cli",
+    "kernel_version": "0.1.0"
+  }
+}

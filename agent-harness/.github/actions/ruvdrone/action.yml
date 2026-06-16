@@ -1,0 +1,10 @@
+name: ruvdrone
+description: "AI agent harness for ruv-drone — cooperative civilian UAV fleet coordination in Rust. All 9 hosts."
+inputs:
+  task: { description: The task for the harness., required: true }
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: echo "Running ruvdrone (non-interactive)…"
+      env: { TASK: "${{ inputs.task }}" }

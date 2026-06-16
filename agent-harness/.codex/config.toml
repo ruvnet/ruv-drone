@@ -1,0 +1,3 @@
+[mcp_servers.ruvdrone]
+command = "npx"
+args = ["-y", "ruvdrone@latest", "mcp", "start"]

@@ -1,0 +1,4 @@
+[harness]
+name = "ruvdrone"
+isolation = "hardware"
+witness = "ed25519"
