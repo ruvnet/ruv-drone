@@ -1,3 +1,9 @@
+[workspace]
+# Root package (ruview-swarm) is the implicit workspace root; ruv-jellyfish
+# (ADR-172) is a standalone member with no path-dep back into the root, so it
+# builds and tests independently in the light default configuration.
+members = ["crates/ruv-jellyfish"]
+
 [package]
 name = "ruview-swarm"
 version = "0.1.0"
