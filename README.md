@@ -121,11 +121,25 @@ src/
 └── integration/   — FlightController trait (PX4 / ArduPilot / sim)
 ```
 
+## Workspace crates
+
+The repository is a Cargo workspace. The root package (`ruview-swarm`) is the
+coordination layer; companion crates live under [`crates/`](./crates):
+
+| Crate | ADR | Purpose |
+|-------|-----|---------|
+| [`ruv-jellyfish`](./crates/ruv-jellyfish) | ADR-172 | Jellyfish-inspired energy-efficient behaviors — pulse-and-drift gait and bloom aggregation for endurance-bound loiter (relay chains, SAR re-scan, persistent monitoring) |
+
+```bash
+cargo test -p ruv-jellyfish     # the companion crate builds/tests standalone
+```
+
 ## Related ADRs
 
 | ADR | Title | Relation |
 |-----|-------|----------|
 | ADR-148 | Drone Swarm Control System | This crate |
+| ADR-172 | Jellyfish-Inspired Swarm Behaviors | Energy-efficient loiter/aggregation — [`crates/ruv-jellyfish`](./crates/ruv-jellyfish) |
 | ADR-147 | OccWorld Occupancy World Model | Environment prior via `sensing::occworld_bridge` |
 | ADR-134 | CSI→CIR ISTA Sparse Recovery | Drone payload sensing |
 | ADR-146 | RF Encoder Multitask Heads | Drone payload inference |

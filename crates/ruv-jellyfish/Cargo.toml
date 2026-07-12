@@ -1,0 +1,21 @@
+[package]
+name = "ruv-jellyfish"
+version = "0.1.0"
+edition = "2021"
+description = "Jellyfish-inspired energy-efficient swarm behaviors for cooperative UAV fleets — pulse-and-drift gait and bloom aggregation (ADR-172)"
+license = "Apache-2.0"
+# Standalone helper crate. Kept publish=false to match the parent workspace
+# (ruview-swarm) until the whole workspace is cleared for publishing.
+publish = false
+
+[features]
+# serde derives on the public parameter/state types, on by default so mission
+# TOML configs can carry jellyfish tuning alongside the rest of the swarm config.
+default = ["serde"]
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+
+[dev-dependencies]
+# none — the crate is std-only so its tests run in the light default build.
