@@ -2,6 +2,10 @@
 
 **Industrial cooperative-UAV fleet coordination, in Rust.**
 
+[![ruv-drone LatentMesh advisory communications across a civilian drone fleet](./docs/assets/latentmesh-hero.webp)](https://latentmesh-flight-safe-mesh.ruv.chatgpt.site)
+
+> [Explore the interactive LatentMesh architecture](https://latentmesh-flight-safe-mesh.ruv.chatgpt.site), including the signed message path, hard flight-safety boundary, transport behavior, practical missions, measured performance, and staged deployment plan.
+
 `ruv-drone` is a coordination layer that sits *above* a per-vehicle autopilot
 (PX4 / ArduPilot) and turns a set of drones into a coordinated fleet — formation
 keeping, distributed consensus, cooperative task allocation, collision-avoidant
@@ -116,16 +120,43 @@ profiles. A bounded Tokio channel and connected UDP datagram transport are
 included for integration and deployment adapters.
 
 ```bash
-cargo test --locked --features latentmesh
+cargo run --locked --features latentmesh --example latentmesh_loopback
+cargo test --locked --features latentmesh --all-targets
 cargo clippy --locked --features latentmesh --all-targets -- -D warnings
 ```
+
+The loopback example builds two authenticated peers, fragments a signed state
+update at a 64-byte MTU, delivers it through a bounded channel, verifies it,
+and prints the admitted advisory and wire accounting. Start with the
+[LatentMesh user guide](./docs/latentmesh-user-guide.md) before connecting a
+real transport or enabling mission proposals.
 
 LatentMesh output is deliberately non-authoritative. It terminates in a
 short-lived advisory store and cannot arm, actuate, choose a flight mode,
 publish position or velocity setpoints, override a geofence or fail-safe, or
 write to the safety topology. Learned residuals in LatentMesh envelopes are
 rejected in this initial integration. See [ADR-173](./docs/adr/ADR-173-latentmesh-comms-orchestration.md)
-and the [threat model](./docs/security/latentmesh-threat-model.md).
+and the [threat model](./docs/security/latentmesh-threat-model.md). The
+[interactive explainer](https://latentmesh-flight-safe-mesh.ruv.chatgpt.site)
+shows this boundary visually on desktop and mobile.
+
+### Current evidence and release boundary
+
+| Evidence | Result |
+|----------|--------|
+| Default workspace tests | 167 passed |
+| LatentMesh feature tests | 191 passed |
+| No-default-feature tests | 136 passed |
+| Local state projection | 386.62–397.98 ns |
+| Sign and fragment at 64-byte MTU | 38.677–39.616 µs |
+| Reassemble, verify, and admit | 47.952–51.988 µs |
+| Deep security, STRIDE, and secrets scans | 0 findings |
+
+These are local CPU and software-loopback results, not RF claims. Production
+release still requires two-node hardware-in-the-loop and real-radio validation,
+including latency percentiles, allocation behavior, packet loss and reordering,
+restart recovery, clock drift, protected key storage, key rotation, disable
+behavior, and regional RF compliance.
 
 ## Module structure
 
