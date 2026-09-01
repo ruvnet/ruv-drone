@@ -18,6 +18,8 @@ pub mod integration;
 pub mod bench_support;
 pub mod orchestrator;
 pub mod ruflo;
+#[cfg(feature = "latentmesh")]
+pub mod latentmesh;
 
 pub use types::{
     ClusterId, CsiDetection, DroneState, FailSafeState, GridCell, NodeId,

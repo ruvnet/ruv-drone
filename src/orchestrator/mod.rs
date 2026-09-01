@@ -37,6 +37,11 @@ pub struct SwarmOrchestrator {
     pub peer_detections: Vec<CsiDetection>,
     /// Accumulated mission statistics.
     pub stats: MissionStats,
+    /// Authenticated but non-authoritative LatentMesh peer observations.
+    /// This store is deliberately separate from `peer_states`, which remains
+    /// the existing safety/topology input.
+    #[cfg(feature = "latentmesh")]
+    pub latentmesh_advisories: HashMap<NodeId, crate::latentmesh::VerifiedAdvisory>,
     /// Optional Ruflo backend for AgentDB, AIDefence, and SONA intelligence.
     /// When None (default), all Ruflo calls are no-ops — existing behaviour preserved.
     #[cfg(feature = "ruflo")]
@@ -109,6 +114,8 @@ impl SwarmOrchestrator {
             peer_states: HashMap::new(),
             peer_detections: Vec::new(),
             stats: MissionStats::default(),
+            #[cfg(feature = "latentmesh")]
+            latentmesh_advisories: HashMap::new(),
             #[cfg(feature = "ruflo")]
             ruflo: None,
             #[cfg(feature = "ruflo")]
@@ -185,6 +192,53 @@ impl SwarmOrchestrator {
     /// Accept an incoming CSI detection from a peer.
     pub fn receive_peer_detection(&mut self, det: CsiDetection) {
         self.peer_detections.push(det);
+    }
+
+    /// Store a verified LatentMesh observation without changing authoritative
+    /// peer geometry, local safety state, or any flight-control output.
+    #[cfg(feature = "latentmesh")]
+    pub fn receive_latentmesh_advisory(
+        &mut self,
+        advisory: crate::latentmesh::VerifiedAdvisory,
+    ) -> bool {
+        let source = advisory.received().snapshot.drone.id;
+        let incoming = advisory.received().metadata;
+        if self
+            .latentmesh_advisories
+            .get(&source)
+            .is_some_and(|current| {
+                let current = current.received().metadata;
+                (incoming.epoch, incoming.logical_sequence)
+                    <= (current.epoch, current.logical_sequence)
+            })
+        {
+            return false;
+        }
+        self.latentmesh_advisories.insert(source, advisory);
+        true
+    }
+
+    /// A LatentMesh report may only reduce a remote peer's eligibility for new
+    /// cooperative work. It cannot create a task or affect local flight safety.
+    #[cfg(feature = "latentmesh")]
+    pub fn latentmesh_peer_is_eligible(&self, source: NodeId, now_ms: u64) -> bool {
+        self.latentmesh_advisories
+            .get(&source)
+            .is_some_and(|advisory| {
+                let state = &advisory.received().snapshot;
+                now_ms <= advisory.security_context().expires_at_ms()
+                    && state.drone.battery_pct >= self.failsafe.battery_warn_pct
+                    && state.drone.link_quality >= 0.2
+                    && state.failsafe == FailSafeState::Nominal
+            })
+    }
+
+    #[cfg(feature = "latentmesh")]
+    pub fn expire_latentmesh_advisories(&mut self, now_ms: u64) -> usize {
+        let before = self.latentmesh_advisories.len();
+        self.latentmesh_advisories
+            .retain(|_, advisory| now_ms <= advisory.security_context().expires_at_ms());
+        before - self.latentmesh_advisories.len()
     }
 
     /// Attach a Ruflo backend for AgentDB pattern learning, AIDefence, and SONA.
@@ -286,8 +340,17 @@ impl SwarmOrchestrator {
     fn nearest_peer_distance(&self) -> f64 {
         self.peer_states
             .values()
-            .map(|p| self.state.position.distance_to(&p.position))
-            .fold(f64::MAX, f64::min)
+            .try_fold(f64::MAX, |nearest, peer| {
+                let distance = self.state.position.distance_to(&peer.position);
+                distance
+                    .is_finite()
+                    .then_some(nearest.min(distance))
+                    .ok_or(())
+            })
+            // Unknown peer geometry is safety-significant. Propagating NaN
+            // deliberately drives FailSafeMachine to EmergencyDiverge rather
+            // than silently treating a poisoned peer as infinitely far away.
+            .unwrap_or(f64::NAN)
     }
 
     /// Convert a world position to grid cell indices, clamped to grid bounds.
@@ -397,6 +460,76 @@ mod tests {
             orch0.peer_states.contains_key(&NodeId(1)),
             "orch0 should know about orch1"
         );
+    }
+
+    #[tokio::test]
+    async fn test_nonfinite_peer_state_triggers_emergency_diverge() {
+        let mut orch = demo_orchestrator(0, vec![]);
+        let mut poisoned = DroneState::default_at_origin(NodeId(1));
+        poisoned.position.x = f64::NAN;
+        orch.receive_peer_state(poisoned);
+
+        assert_eq!(
+            orch.step(0.1, true).await,
+            FailSafeState::EmergencyDiverge,
+            "unknown peer geometry must fail closed before mission logic runs"
+        );
+    }
+
+    #[cfg(feature = "latentmesh")]
+    #[tokio::test]
+    async fn test_latentmesh_advisory_is_reduce_only_and_not_safety_topology() {
+        use crate::latentmesh::{
+            AdaptivePolicy, LatentMeshNode, LatentMeshRxSession, LatentMeshTxSession, RxConfig,
+            TrustedPeerKeys, TxConfig,
+        };
+        use ed25519_dalek::SigningKey;
+
+        let now_ms = 50_000;
+        let source_id = 7;
+        let signing_key = SigningKey::from_bytes(&[7; 32]);
+        let transmitter = LatentMeshTxSession::new(
+            source_id,
+            1,
+            signing_key.clone(),
+            TxConfig {
+                frame_mtu: 64,
+                ..TxConfig::default()
+            },
+        )
+        .unwrap();
+        let mut trusted = TrustedPeerKeys::new();
+        trusted.insert(source_id, signing_key.verifying_key());
+        let receiver = LatentMeshRxSession::new(trusted, RxConfig::default()).unwrap();
+        let mut endpoint = LatentMeshNode::new(transmitter, receiver, AdaptivePolicy::default());
+
+        let mut peer = DroneState::default_at_origin(NodeId(source_id));
+        peer.timestamp_ms = now_ms;
+        peer.battery_pct = 10.0;
+        let batch = endpoint
+            .encode_advisory_state(&peer, &FailSafeState::ReturnToHome)
+            .unwrap();
+        let mut verified = None;
+        for frame in batch.encoded_frames().unwrap() {
+            verified = endpoint
+                .ingest_frame_bytes(source_id, now_ms, &frame)
+                .unwrap()
+                .or(verified);
+        }
+
+        let mut orch = demo_orchestrator(0, vec![]);
+        assert!(orch.receive_latentmesh_advisory(verified.unwrap()));
+        assert!(!orch.latentmesh_peer_is_eligible(NodeId(source_id), now_ms));
+        assert!(
+            orch.peer_states.is_empty(),
+            "LatentMesh advisory must not enter authoritative peer topology"
+        );
+        assert_eq!(
+            orch.step(0.1, true).await,
+            FailSafeState::Nominal,
+            "remote advisory fail-safe and battery cannot change local safety state"
+        );
+        assert_eq!(orch.expire_latentmesh_advisories(now_ms + 5_001), 1);
     }
 
     #[tokio::test]

@@ -85,7 +85,7 @@ mod tests {
         let scorer = FnnScorer::default_weights();
         let features = [0.3f32, 0.8, 0.9, 0.75, 0.2];
         let s = scorer.score(features);
-        assert!(s >= 0.0 && s <= 1.0, "score {s} out of [0,1]");
+        assert!((0.0..=1.0).contains(&s), "score {s} out of [0,1]");
     }
 
     #[test]

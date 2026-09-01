@@ -44,7 +44,7 @@ rather than replaces, your autopilot and transport:
 | Layer | Handled by |
 |-------|------------|
 | Per-vehicle flight control | PX4 / ArduPilot (via the `FlightController` trait; sim included) |
-| Transport | MAVLink v2 (HMAC-SHA256 signed) / DDS |
+| Transport | MAVLink v2 (HMAC-SHA256 signed) / DDS; optional LatentMesh Air advisory telemetry |
 | **Fleet coordination** | **`ruv-drone`** — consensus, formation, allocation, coverage planning |
 | Sensing payload (optional) | WiFi-CSI pipeline (ESP32-S3 → edge), multi-drone fusion |
 
@@ -57,6 +57,7 @@ rather than replaces, your autopilot and transport:
 - **Cooperative task allocation** — auction-based bidding with an FNN bid scorer
 - **MAPPO multi-agent RL** — 64-dim local observation, CTDE training, optional INT8 (ONNX) inference; real Candle PPO under the `train` feature
 - **Security hardening** — MAVLink v2 signing, UWB GPS anti-spoofing, onboard geofencing, Remote ID
+- **LatentMesh advisory plane** — signed deterministic peer-state deltas, bounded multi-profile framing, replay defense, and default-deny mission coordination with no flight authority
 - **Fail-safe state machine** — 10-state, GCS-independent onboard safety
 - **Sim & training** — synthetic CSI generation, Gazebo / PX4 SITL interface, TOML mission configs
 
@@ -76,7 +77,7 @@ let estimated_secs = scenario.estimate_coverage_time_secs();
 
 ```bash
 cargo build                 # core coordination layer
-cargo build --features full # + mavlink, onnx, demo
+cargo build --features full # + mavlink, onnx, demo, latentmesh
 cargo test
 ```
 
@@ -101,7 +102,30 @@ cargo test
 | `simulation` / `demo` | Simulation mode + synthetic-CSI scenario runners |
 | `train` / `cuda` | Real Candle autodiff PPO training (GPU optional) |
 | `ruflo` | Ruflo AI-agent HTTP backend integration |
-| `full` | `mavlink` + `onnx` + `demo` |
+| `latentmesh` | Authenticated LatentMesh Air advisory telemetry and governed mission-coordination policy |
+| `full` | `mavlink` + `onnx` + `demo` + `latentmesh` |
+
+## LatentMesh advisory communications
+
+The optional `latentmesh` feature integrates the deterministic
+`latentmesh-air-core` contract at an exact reviewed commit. It provides
+canonical Q16.16 peer-state projection, Ed25519-signed semantic envelopes,
+bounded fragmentation and reassembly, replay checkpoints, periodic recovery
+keyframes, adaptive utility-per-byte scheduling, and WiFi/BLE/Meshtastic Air
+profiles. A bounded Tokio channel and connected UDP datagram transport are
+included for integration and deployment adapters.
+
+```bash
+cargo test --locked --features latentmesh
+cargo clippy --locked --features latentmesh --all-targets -- -D warnings
+```
+
+LatentMesh output is deliberately non-authoritative. It terminates in a
+short-lived advisory store and cannot arm, actuate, choose a flight mode,
+publish position or velocity setpoints, override a geofence or fail-safe, or
+write to the safety topology. Learned residuals in LatentMesh envelopes are
+rejected in this initial integration. See [ADR-173](./docs/adr/ADR-173-latentmesh-comms-orchestration.md)
+and the [threat model](./docs/security/latentmesh-threat-model.md).
 
 ## Module structure
 
@@ -118,6 +142,7 @@ src/
 ├── failsafe/      — 10-state onboard fail-safe machine
 ├── config/        — TOML SwarmConfig with mission presets
 ├── demo/          — synthetic CSI, DemoScenario runners
+├── latentmesh/    — Authenticated advisory state, transport, policy, and metrics
 └── integration/   — FlightController trait (PX4 / ArduPilot / sim)
 ```
 
@@ -140,6 +165,7 @@ cargo test -p ruv-jellyfish     # the companion crate builds/tests standalone
 |-----|-------|----------|
 | ADR-148 | Drone Swarm Control System | This crate |
 | ADR-172 | Jellyfish-Inspired Swarm Behaviors | Energy-efficient loiter/aggregation — [`crates/ruv-jellyfish`](./crates/ruv-jellyfish) |
+| ADR-173 | LatentMesh Communications and Advisory Orchestration | Signed sparse peer state with a hard flight-authority boundary — [`docs/adr/ADR-173-latentmesh-comms-orchestration.md`](./docs/adr/ADR-173-latentmesh-comms-orchestration.md) |
 | ADR-147 | OccWorld Occupancy World Model | Environment prior via `sensing::occworld_bridge` |
 | ADR-134 | CSI→CIR ISTA Sparse Recovery | Drone payload sensing |
 | ADR-146 | RF Encoder Multitask Heads | Drone payload inference |
