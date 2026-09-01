@@ -203,6 +203,10 @@ mod tests {
         let cfg = FhssConfig::default();
         let radio = FhssRadio::new(99, cfg.clone());
         let ch = radio.current_channel_mhz();
-        assert!(ch >= 902.0 && ch <= 928.0, "channel {} out of ISM band", ch);
+        assert!(
+            (902.0..=928.0).contains(&ch),
+            "channel {} out of ISM band",
+            ch
+        );
     }
 }
