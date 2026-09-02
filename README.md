@@ -62,6 +62,7 @@ rather than replaces, your autopilot and transport:
 - **MAPPO multi-agent RL** — 64-dim local observation, CTDE training, optional INT8 (ONNX) inference; real Candle PPO under the `train` feature
 - **Security hardening** — MAVLink v2 signing, UWB GPS anti-spoofing, onboard geofencing, Remote ID
 - **LatentMesh advisory plane** — signed deterministic peer-state deltas, bounded multi-profile framing, replay defense, and default-deny mission coordination with no flight authority
+- **RuForecast advisory** — bounded local battery/link/progress forecasting with receipts, abstention, shadow-first rollout, and reduce-only assignment gates
 - **Fail-safe state machine** — 10-state, GCS-independent onboard safety
 - **Sim & training** — synthetic CSI generation, Gazebo / PX4 SITL interface, TOML mission configs
 
@@ -81,7 +82,7 @@ let estimated_secs = scenario.estimate_coverage_time_secs();
 
 ```bash
 cargo build                 # core coordination layer
-cargo build --features full # + mavlink, onnx, demo, latentmesh
+cargo build --features full # + mavlink, onnx, demo, latentmesh, ruforecast
 cargo test
 ```
 
@@ -107,7 +108,38 @@ cargo test
 | `train` / `cuda` | Real Candle autodiff PPO training (GPU optional) |
 | `ruflo` | Ruflo AI-agent HTTP backend integration |
 | `latentmesh` | Authenticated LatentMesh Air advisory telemetry and governed mission-coordination policy |
-| `full` | `mavlink` + `onnx` + `demo` + `latentmesh` |
+| `ruforecast` | Baseline-first, receipt-bound local predictive advisory (shadow by default) |
+| `full` | `mavlink` + `onnx` + `demo` + `latentmesh` + `ruforecast` |
+
+## RuForecast predictive advisory
+
+The optional `ruforecast` feature pins the backend-neutral
+`ruforecast-core` contract at an exact reviewed commit. Each drone retains at
+most 128 local observations of battery percentage, link quality, and aggregate
+mission progress. It produces deterministic last-value baseline forecasts with
+request/output receipts and explicit expiry. Position, velocity, identity,
+raw sensor data, and model weights never enter the forecast series.
+
+```bash
+cargo test --locked --features ruforecast --all-targets
+cargo test --locked --features latentmesh,ruforecast --all-targets
+cargo bench --locked --features ruforecast --bench ruforecast_bench
+```
+
+The default rollout is **shadow**: results are measured but cannot change any
+decision. An explicit canary policy can only return “do not assign this drone
+new cooperative work” when a fresh forecast crosses a local battery or link
+threshold. Missing, invalid, stale, disabled, or abstaining forecasts preserve
+existing behavior. Forecasting cannot actuate, modify topology, create tasks,
+or enter/clear a fail-safe.
+
+RuForecast currently reports that no learned configuration has reliably beaten
+last-value and seasonal-naive baselines out of sample. For that reason this
+release does not link `ruforecast-model` or claim learned predictive lift.
+Learned activation requires the promotion evidence in
+[ADR-174](./docs/adr/ADR-174-ruforecast-predictive-advisory.md). See the
+[operator guide](./docs/ruforecast-user-guide.md), [threat model](./docs/security/ruforecast-threat-model.md),
+and [benchmark protocol](./docs/benchmarks/ruforecast-integration.md).
 
 ## LatentMesh advisory communications
 
@@ -144,9 +176,14 @@ shows this boundary visually on desktop and mobile.
 
 | Evidence | Result |
 |----------|--------|
-| Default workspace tests | 167 passed |
+| Default feature tests | 136 passed |
 | LatentMesh feature tests | 191 passed |
+| RuForecast feature tests | 143 passed |
+| LatentMesh + RuForecast tests | 198 passed |
 | No-default-feature tests | 136 passed |
+| Cadence-limited 128-row observation | 183.96–235.14 ns |
+| 128-row baseline forecast refresh | 11.385–12.003 µs |
+| Reduce-only policy query | 690.74–764.99 ps |
 | Local state projection | 386.62–397.98 ns |
 | Sign and fragment at 64-byte MTU | 38.677–39.616 µs |
 | Reassemble, verify, and admit | 47.952–51.988 µs |
@@ -174,6 +211,7 @@ src/
 ├── config/        — TOML SwarmConfig with mission presets
 ├── demo/          — synthetic CSI, DemoScenario runners
 ├── latentmesh/    — Authenticated advisory state, transport, policy, and metrics
+├── forecast/      — Bounded RuForecast history, receipts, shadow/canary policy
 └── integration/   — FlightController trait (PX4 / ArduPilot / sim)
 ```
 
@@ -197,6 +235,7 @@ cargo test -p ruv-jellyfish     # the companion crate builds/tests standalone
 | ADR-148 | Drone Swarm Control System | This crate |
 | ADR-172 | Jellyfish-Inspired Swarm Behaviors | Energy-efficient loiter/aggregation — [`crates/ruv-jellyfish`](./crates/ruv-jellyfish) |
 | ADR-173 | LatentMesh Communications and Advisory Orchestration | Signed sparse peer state with a hard flight-authority boundary — [`docs/adr/ADR-173-latentmesh-comms-orchestration.md`](./docs/adr/ADR-173-latentmesh-comms-orchestration.md) |
+| ADR-174 | RuForecast Predictive Advisory | Baseline-first local forecasting with shadow promotion and reduce-only authority — [`docs/adr/ADR-174-ruforecast-predictive-advisory.md`](./docs/adr/ADR-174-ruforecast-predictive-advisory.md) |
 | ADR-147 | OccWorld Occupancy World Model | Environment prior via `sensing::occworld_bridge` |
 | ADR-134 | CSI→CIR ISTA Sparse Recovery | Drone payload sensing |
 | ADR-146 | RF Encoder Multitask Heads | Drone payload inference |

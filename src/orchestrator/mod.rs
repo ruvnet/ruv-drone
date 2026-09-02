@@ -42,6 +42,10 @@ pub struct SwarmOrchestrator {
     /// the existing safety/topology input.
     #[cfg(feature = "latentmesh")]
     pub latentmesh_advisories: HashMap<NodeId, crate::latentmesh::VerifiedAdvisory>,
+    /// Local predictive advisory engine. It observes bounded, non-kinematic
+    /// telemetry and has no access to flight or fail-safe mutation handles.
+    #[cfg(feature = "ruforecast")]
+    pub forecast: crate::forecast::ForecastEngine,
     /// Optional Ruflo backend for AgentDB, AIDefence, and SONA intelligence.
     /// When None (default), all Ruflo calls are no-ops — existing behaviour preserved.
     #[cfg(feature = "ruflo")]
@@ -116,6 +120,8 @@ impl SwarmOrchestrator {
             stats: MissionStats::default(),
             #[cfg(feature = "latentmesh")]
             latentmesh_advisories: HashMap::new(),
+            #[cfg(feature = "ruforecast")]
+            forecast: crate::forecast::ForecastEngine::default(),
             #[cfg(feature = "ruflo")]
             ruflo: None,
             #[cfg(feature = "ruflo")]
@@ -171,7 +177,35 @@ impl SwarmOrchestrator {
         self.state.battery_pct = self.state.battery_pct.max(0.0);
         self.state.timestamp_ms += (dt_secs * 1_000.0) as u64;
 
+        // Forecasting runs after normal mission and safety processing. Shadow
+        // mode (the default) records only evidence; canary mode can only make
+        // this node ineligible for *new* work through an explicit query.
+        #[cfg(feature = "ruforecast")]
+        {
+            let coverage = self.probability_grid.coverage_pct();
+            self.forecast.observe_and_forecast(
+                self.state.timestamp_ms,
+                self.state.battery_pct,
+                self.state.link_quality,
+                coverage as f32,
+            );
+        }
+
         fs_state
+    }
+
+    /// Configure the local RuForecast advisory policy.
+    #[cfg(feature = "ruforecast")]
+    pub fn with_forecast_policy(mut self, policy: crate::forecast::ForecastPolicy) -> Self {
+        self.forecast = crate::forecast::ForecastEngine::new(policy);
+        self
+    }
+
+    /// Forecasts may only reduce eligibility for new cooperative work. Shadow,
+    /// disabled, stale, abstaining, or unavailable forecasts preserve behavior.
+    #[cfg(feature = "ruforecast")]
+    pub fn forecast_is_eligible_for_new_work(&self, now_ms: u64) -> bool {
+        self.forecast.is_eligible_for_new_work(now_ms)
     }
 
     /// Multi-drone CSI fusion at the cluster-head level.
@@ -530,6 +564,33 @@ mod tests {
             "remote advisory fail-safe and battery cannot change local safety state"
         );
         assert_eq!(orch.expire_latentmesh_advisories(now_ms + 5_001), 1);
+    }
+
+    #[cfg(feature = "ruforecast")]
+    #[tokio::test]
+    async fn test_ruforecast_cannot_change_local_failsafe_or_motion() {
+        use crate::forecast::{ForecastPolicy, ForecastRolloutMode};
+
+        let policy = ForecastPolicy {
+            rollout: ForecastRolloutMode::CanaryReduceOnly,
+            minimum_history: 2,
+            minimum_battery_pct: 100.0,
+            ..ForecastPolicy::default()
+        };
+        let mut orch = demo_orchestrator(0, vec![]).with_forecast_policy(policy);
+        let mut control = demo_orchestrator(0, vec![]);
+
+        let first = orch.step(1.0, true).await;
+        let second = orch.step(1.0, true).await;
+        control.step(1.0, true).await;
+        control.step(1.0, true).await;
+        assert_eq!(first, FailSafeState::Nominal);
+        assert_eq!(second, FailSafeState::Nominal);
+        assert!(!orch.forecast_is_eligible_for_new_work(orch.state.timestamp_ms));
+        assert_eq!(orch.state.position, control.state.position);
+        assert_eq!(orch.state.velocity.vx, control.state.velocity.vx);
+        assert_eq!(orch.state.velocity.vy, control.state.velocity.vy);
+        assert!(orch.peer_states.is_empty());
     }
 
     #[tokio::test]

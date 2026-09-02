@@ -2069,6 +2069,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ruforecast-core"
+version = "0.1.0"
+source = "git+https://github.com/ruvnet/RuForecast.git?rev=59173b55ef51a122db222c9902aeae521713d0a5#59173b55ef51a122db222c9902aeae521713d0a5"
+dependencies = [
+ "ed25519-dalek",
+ "serde",
+ "sha2",
+ "thiserror 2.0.20",
+]
+
+[[package]]
 name = "rustc_version"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2151,6 +2162,7 @@ dependencies = [
  "ort",
  "rand 0.8.8",
  "reqwest",
+ "ruforecast-core",
  "serde",
  "serde_json",
  "sha2",

@@ -12,4 +12,6 @@ jobs:
       - run: cargo build --locked --verbose
       - run: cargo test --locked --verbose
       - run: cargo test --locked --features latentmesh --verbose
-      - run: cargo clippy --locked --features latentmesh --all-targets -- -D warnings
+      - run: cargo test --locked --features ruforecast --all-targets --verbose
+      - run: cargo test --locked --features latentmesh,ruforecast --all-targets --verbose
+      - run: cargo clippy --locked --features latentmesh,ruforecast --all-targets -- -D warnings
