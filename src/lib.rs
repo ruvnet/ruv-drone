@@ -20,6 +20,8 @@ pub mod orchestrator;
 pub mod ruflo;
 #[cfg(feature = "latentmesh")]
 pub mod latentmesh;
+#[cfg(feature = "ruforecast")]
+pub mod forecast;
 
 pub use types::{
     ClusterId, CsiDetection, DroneState, FailSafeState, GridCell, NodeId,

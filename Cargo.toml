@@ -26,11 +26,14 @@ ros2-dds = []
 onnx = ["dep:ort"]
 simulation = []
 demo = ["simulation"]
-full = ["mavlink", "onnx", "demo", "latentmesh"]
+full = ["mavlink", "onnx", "demo", "latentmesh", "ruforecast"]
 ruflo = ["dep:reqwest", "dep:serde_json"]
 # Deterministic LatentMesh Air semantic state transport. Pinned to an audited
 # upstream commit so the cross-repository wire contract cannot drift silently.
 latentmesh = ["dep:latentmesh-air-core", "dep:ed25519-dalek"]
+# Baseline-first predictive advisory. The backend-neutral core is pinned to an
+# audited revision; learned-model runtimes are intentionally not linked.
+ruforecast = ["dep:ruforecast-core"]
 # Heavy GPU-capable MARL training (real Candle autodiff PPO). Off by default so
 # the default build stays light and the existing test suite keeps passing.
 train = ["dep:candle-core", "dep:candle-nn"]
@@ -63,6 +66,7 @@ hmac = "0.12"
 sha2 = "0.10"
 ed25519-dalek = { version = "2", default-features = false, features = ["std"], optional = true }
 latentmesh-air-core = { git = "https://github.com/ruvnet/LatentMesh.git", rev = "1ff7332c17798eec3b42da5c6f1c271f355fa806", optional = true }
+ruforecast-core = { git = "https://github.com/ruvnet/RuForecast.git", rev = "59173b55ef51a122db222c9902aeae521713d0a5", optional = true }
 
 # Error handling
 thiserror = "2.0"
@@ -86,6 +90,11 @@ harness = false
 name = "latentmesh_bench"
 harness = false
 required-features = ["latentmesh"]
+
+[[bench]]
+name = "ruforecast_bench"
+harness = false
+required-features = ["ruforecast"]
 
 [[example]]
 name = "latentmesh_loopback"
