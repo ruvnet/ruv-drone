@@ -1,0 +1,29 @@
+name: Navigation Lab
+on:
+  pull_request:
+    paths: ['tools/navigation-lab/**', '.github/workflows/navigation-lab.yml']
+  push:
+    branches: [main]
+    paths: ['tools/navigation-lab/**', '.github/workflows/navigation-lab.yml']
+permissions:
+  contents: read
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: ['1.75.0', 'stable']
+    defaults:
+      run:
+        working-directory: tools/navigation-lab
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - run: cargo test --locked --offline
+      - run: cargo run --release --locked --offline -- evaluate > evaluation.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: navigation-evidence-${{ matrix.rust }}
+          path: tools/navigation-lab/evaluation.json

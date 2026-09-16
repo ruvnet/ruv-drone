@@ -1,0 +1,17 @@
+[package]
+name = "ruv-navigation-lab"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+publish = false
+description = "Bounded civilian navigation simulation and trace visualizer; no flight authority"
+
+# Deliberately isolated from optional fleet/GPU dependencies. Builds offline.
+[workspace]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
