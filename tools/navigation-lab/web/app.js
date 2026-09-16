@@ -62,6 +62,7 @@ function update() {
   if(!run)return;const {f}=current();const speed=Math.hypot(...f.v),end=run.frames.at(-1).t;
   $('status').textContent=f.status.replaceAll('_',' ');metric('speed',speed.toFixed(2),'m/s');
   metric('altitude',f.p[2].toFixed(2),'m');metric('clearance',f.clearance.toFixed(2),'m');metric('age',Math.round(f.age*1000),'ms');
+  const percent=end?Math.round(time/end*100):100;$('completion').textContent=percent+'%';$('mission-progress').value=percent;
   $('speed-meter').value=speed;$('time').textContent=time.toFixed(1)+' / '+end.toFixed(1)+' s';
   $('timeline').value=end?time/end*1000:0;$('play').textContent=playing?'Pause':'Play';
   $('play').setAttribute('aria-label',playing?'Pause replay':'Play replay');
@@ -129,6 +130,8 @@ canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('poin
 canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.6,Math.min(1.8,zoom*Math.exp(-e.deltaY*.001)));},{passive:false});
 $('orbit').onclick=()=>{yaw=-.65;pitch=.72;zoom=1;$('orbit').className='selected';$('top').className='';};
 $('top').onclick=()=>{yaw=0;pitch=1.55;zoom=1;$('top').className='selected';$('orbit').className='';};
+$('focus').onclick=()=>{const active=document.body.classList.toggle('focus-mode');$('focus').textContent=active?'Exit focus':'Focus';$('focus').setAttribute('aria-pressed',String(active));};
+for(const id of ['orbit','top']){const handler=$(id).onclick;$(id).onclick=()=>{handler();$('orbit').setAttribute('aria-pressed',String(id==='orbit'));$('top').setAttribute('aria-pressed',String(id==='top'));};}
 $('scenario').onchange=describe;$('run').onclick=generate;
 $('shuffle').onclick=()=>{$('seed').value=(Number($('seed').value)+1)>>>0;generate();};
 $('play').onclick=()=>{if(!run)return;if(time>=run.frames.at(-1).t)time=0;playing=!playing;update();};
