@@ -39,7 +39,7 @@ async function generate() {
     if(id!==request)return;run=next;time=0;playing=run.frames.length>1;describe();
     $('scene-title').textContent=$('scenario').selectedOptions[0].textContent;
     $('connection').textContent='CONNECTED';$('latency').textContent=(run.planning_us/1000).toFixed(2)+' ms';
-    $('expanded').textContent=run.expanded.toLocaleString();$('samples').textContent=run.frames.length.toLocaleString();
+    $('expanded').textContent=run.route.length?run.expanded.toLocaleString():'Not recorded';$('samples').textContent=run.frames.length.toLocaleString();
     $('endpoint').textContent=run.outcome==='ARRIVED'?'Arrival':'Safety hold';
     update();
   } catch(e) {$('connection').textContent='OFFLINE';$('banner').className='banner error';$('banner').textContent=e.message;playing=false;}

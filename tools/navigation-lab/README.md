@@ -19,6 +19,10 @@ a second planner in JavaScript. The route is drawn as an x-ray overlay so it
 remains visible behind structures. Rendering is capped at 30 Hz and pixel ratio
 1.5 for software-rendered remote desktops, and pauses when the tab is hidden.
 
+On Linux, `bash launch.sh` builds and starts the server if needed, then opens the
+browser. `bash launch.sh --server-only` skips the browser. The launcher requires
+Cargo, curl, and xdg-open; no npm installation is needed.
+
 The server accepts only loopback connections, validates Host and Origin, limits
 headers and read time, serves an exact embedded file allowlist, and exposes only
 read-only simulation endpoints. No external CDN, credentials, file browsing,
@@ -75,4 +79,3 @@ the root fleet crate; it does not repair or replace the root RRT/APF planner.
 
 See [the architecture decision](../../docs/adr/ADR-175-rust-navigation-lab.md)
 for the integration and validation gates before any aircraft-facing adapter.
-
