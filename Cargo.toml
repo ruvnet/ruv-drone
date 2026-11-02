@@ -54,9 +54,9 @@ async-trait = "0.1"
 # ONNX Runtime (optional — for MARL actor inference)
 ort = { version = "2.0.0-rc.11", optional = true }
 
-# Candle 0.9 — real autodiff PPO training (optional, behind `train` feature).
-candle-core = { version = "0.9", default-features = false, optional = true }
-candle-nn   = { version = "0.9", default-features = false, optional = true }
+# Candle 0.11.1 — real autodiff PPO training (optional, behind `train` feature).
+candle-core = { version = "=0.11.1", default-features = false, optional = true }
+candle-nn   = { version = "=0.11.1", default-features = false, optional = true }
 
 # HTTP client (optional — for Ruflo HTTP backend)
 reqwest = { version = "0.12", features = ["json"], optional = true }
