@@ -139,9 +139,16 @@ fn load(counter: &AtomicU64) -> u64 {
 }
 
 fn saturating_add(counter: &AtomicU64, value: u64) {
-    let _ = counter.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |current| {
-        Some(current.saturating_add(value))
-    });
+    // CAS loop instead of `fetch_update`, which newer toolchains deprecate
+    // (renamed to `try_update`); this form builds warning-free on all of them.
+    let mut current = counter.load(Ordering::Relaxed);
+    loop {
+        let next = current.saturating_add(value);
+        match counter.compare_exchange_weak(current, next, Ordering::Relaxed, Ordering::Relaxed) {
+            Ok(_) => return,
+            Err(actual) => current = actual,
+        }
+    }
 }
 
 #[cfg(test)]
