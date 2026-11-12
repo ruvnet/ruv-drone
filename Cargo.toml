@@ -75,7 +75,7 @@ thiserror = "2.0"
 tracing = "0.1"
 
 # Numerics
-nalgebra = "0.33"
+nalgebra = "0.35"
 rand = "0.8"
 
 [dev-dependencies]

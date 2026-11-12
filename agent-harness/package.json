@@ -32,16 +32,8 @@
     "hermes", "openclaw", "pi-dev", "rvm"
   ],
   "dependencies": {
-    "@metaharness/kernel": "^0.1.0",
-    "@metaharness/host-claude-code": "^0.1.1",
-    "@metaharness/host-codex": "^0.1.1",
-    "@metaharness/host-copilot": "^0.1.1",
-    "@metaharness/host-github-actions": "^0.1.1",
-    "@metaharness/host-hermes": "^0.1.1",
-    "@metaharness/host-openclaw": "^0.1.1",
-    "@metaharness/host-opencode": "^0.1.1",
-    "@metaharness/host-pi-dev": "^0.1.1",
-    "@metaharness/host-rvm": "^0.1.1"
+    "@metaharness/kernel": "0.1.8",
+    "@metaharness/host-claude-code": "0.1.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
